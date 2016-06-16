@@ -1,19 +1,6 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.IO;
-using System.Linq;
-using System.Runtime.InteropServices.WindowsRuntime;
-using Windows.Foundation;
-using Windows.Foundation.Collections;
-using Windows.UI.Xaml;
 using Windows.UI.Xaml.Controls;
-using Windows.UI.Xaml.Controls.Primitives;
-using Windows.UI.Xaml.Data;
-using Windows.UI.Xaml.Input;
-using Windows.UI.Xaml.Media;
-using Windows.UI.Xaml.Navigation;
 using Microsoft.Azure.Devices.Client;
-using System.Threading.Tasks;
 using System.Text;
 
 // The Blank Page item template is documented at http://go.microsoft.com/fwlink/?LinkId=402352&clcid=0x409
@@ -38,7 +25,7 @@ namespace IoTApp
             {
                 deviceClient = DeviceClient.Create(AzureHubHostName, new DeviceAuthenticationWithRegistrySymmetricKey(deviceId, deviceKey));
 
-                SendMessageToCloudAsync();
+                ReceiveCommandFromCloudAsync();
 
             }
             catch (Exception e)
@@ -51,7 +38,7 @@ namespace IoTApp
         private static async void SendMessageToCloudAsync()
         {
             Message messageCmd = new Message();
-            messageCmd.Properties["Trigger"] = "ImageCaptured";
+            messageCmd.Properties["Trigger"] = "ImageCapture";
             messageCmd.Properties["Body"] = "Here is the picture of fridge";
             messageCmd.Properties["Command"] = "GetImage";
 
@@ -60,6 +47,18 @@ namespace IoTApp
             Message message = new Message(Encoding.UTF8.GetBytes("This is just as message"));
 
             await deviceClient.SendEventAsync(message);
+        }
+
+        private static async void ReceiveCommandFromCloudAsync()
+        {
+            while (true)
+            {
+                Message command = await deviceClient.ReceiveAsync();
+
+                if (command == null) continue;
+
+                await deviceClient.CompleteAsync(command);
+            }
         }
     }
 }
