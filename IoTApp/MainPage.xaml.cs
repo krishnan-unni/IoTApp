@@ -29,17 +29,17 @@ namespace IoTApp
         static string AzureHubHostName = "INet.azure-devices.net";
         static string deviceKey = "X+K88nC/NzxKu4pfesVfc3DlOBclviGlck4G50wgxLU=";
         static string deviceId = "TestIoTDevice";
-        static string AzureHubConnectionString = "HostName=INet.azure-devices.net;SharedAccessKeyName=iothubowner;SharedAccessKey=TrUhTc0eM+ls5NkUT7W5r74xpA98FiMnqNjM93kX7Z0=";
+        //static string AzureHubConnectionString = "HostName=INet.azure-devices.net;SharedAccessKeyName=iothubowner;SharedAccessKey=TrUhTc0eM+ls5NkUT7W5r74xpA98FiMnqNjM93kX7Z0=";
 
         public MainPage()
         {
             this.InitializeComponent();
             try
             {
+                //Create the device client to interact with device to cloud
                 deviceClient = DeviceClient.Create(AzureHubHostName, new DeviceAuthenticationWithRegistrySymmetricKey(deviceId, deviceKey));
 
-                SendMessageToCloudAsync();
-
+                SendDataToCloudAsync();
             }
             catch (Exception e)
             {
@@ -48,9 +48,14 @@ namespace IoTApp
 
         }
 
-        private static async void SendMessageToCloudAsync()
+        /// <summary>
+        /// Send triggers or data to cloud
+        /// </summary>
+        private static async void SendDataToCloudAsync()
         {
             Message messageCmd = new Message();
+            messageCmd.MessageId = Guid.NewGuid().ToString();
+            messageCmd.Properties["messageType"] = "interactive";
             messageCmd.Properties["Trigger"] = "ImageCaptured";
             messageCmd.Properties["Body"] = "Here is the picture of fridge";
             messageCmd.Properties["Command"] = "GetImage";
@@ -61,5 +66,24 @@ namespace IoTApp
 
             await deviceClient.SendEventAsync(message);
         }
+
+        /// <summary>
+        /// Receive commands/messages from cloud
+        /// </summary>
+        private static async void ReceiveCommandFromCloudAsync()
+        {
+            while (true)
+            {
+                Message command = await deviceClient.ReceiveAsync();
+                if (command.Properties.ContainsKey("command") && command.Properties["command"] == "CaptureImage")
+                {
+                    //Capture Image and send
+                    //once processing is done complete message
+                    await deviceClient.CompleteAsync(command);
+                    continue;
+                }
+            }
+        }
+
     }
 }
