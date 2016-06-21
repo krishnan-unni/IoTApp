@@ -16,7 +16,7 @@ namespace IoTApp
         static string AzureHubHostName = "INet.azure-devices.net";
         static string deviceKey = "X+K88nC/NzxKu4pfesVfc3DlOBclviGlck4G50wgxLU=";
         static string deviceId = "TestIoTDevice";
-        static string AzureHubConnectionString = "HostName=INet.azure-devices.net;SharedAccessKeyName=iothubowner;SharedAccessKey=TrUhTc0eM+ls5NkUT7W5r74xpA98FiMnqNjM93kX7Z0=";
+        //static string AzureHubConnectionString = "HostName=INet.azure-devices.net;SharedAccessKeyName=iothubowner;SharedAccessKey=TrUhTc0eM+ls5NkUT7W5r74xpA98FiMnqNjM93kX7Z0=";
 
         public MainPage()
         {
@@ -38,6 +38,8 @@ namespace IoTApp
         private static async void SendMessageToCloudAsync()
         {
             Message messageCmd = new Message();
+            messageCmd.MessageId = Guid.NewGuid().ToString();
+            messageCmd.Properties["messageType"] = "interactive";
             messageCmd.Properties["Trigger"] = "ImageCapture";
             messageCmd.Properties["Body"] = "Here is the picture of fridge";
             messageCmd.Properties["Command"] = "GetImage";
@@ -57,7 +59,16 @@ namespace IoTApp
 
                 if (command == null) continue;
 
+                if (command.Properties["messageType"]=="interactive" && command.Properties["Command"] == "turnOff")
+                {
+                    //process command
+                    await deviceClient.CompleteAsync(command);
+                    continue;
+                }
+
+                //do some other operation and complete
                 await deviceClient.CompleteAsync(command);
+                continue;
             }
         }
     }
