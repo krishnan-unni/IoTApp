@@ -53,15 +53,30 @@ namespace IoTApp
 
         private static async void ReceiveCommandFromCloudAsync()
         {
+            bool IsPiInitiated = false;
+            
             while (true)
             {
                 Message command = await deviceClient.ReceiveAsync();
 
                 if (command == null) continue;
 
-                if (command.Properties["messageType"]=="interactive" && command.Properties["Command"] == "turnOff")
+                if (command.Properties["messageType"] == "interactive")
                 {
                     //process command
+                    if (!IsPiInitiated)
+                    {
+                        IsPiInitiated = PiController.InitializeGPIO();
+                    }
+                    if (IsPiInitiated && command.Properties["Command"] == "turnOff")
+                    {
+                        PiController.TurnOffLED();
+                    }
+                    else if (IsPiInitiated && command.Properties["Command"] == "turnOn")
+                    {
+                        PiController.TurnOnLED();
+                    }
+
                     await deviceClient.CompleteAsync(command);
                     continue;
                 }
