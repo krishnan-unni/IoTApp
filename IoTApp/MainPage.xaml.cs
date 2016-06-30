@@ -2,6 +2,7 @@
 using Windows.UI.Xaml.Controls;
 using Microsoft.Azure.Devices.Client;
 using System.Text;
+using IoTApp.Sensors;
 
 // The Blank Page item template is documented at http://go.microsoft.com/fwlink/?LinkId=402352&clcid=0x409
 
@@ -16,7 +17,6 @@ namespace IoTApp
         static string AzureHubHostName = "INet.azure-devices.net";
         static string deviceKey = "X+K88nC/NzxKu4pfesVfc3DlOBclviGlck4G50wgxLU=";
         static string deviceId = "TestIoTDevice";
-        //static string AzureHubConnectionString = "HostName=INet.azure-devices.net;SharedAccessKeyName=iothubowner;SharedAccessKey=TrUhTc0eM+ls5NkUT7W5r74xpA98FiMnqNjM93kX7Z0=";
 
         public MainPage()
         {

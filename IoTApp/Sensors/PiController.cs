@@ -5,16 +5,16 @@ using System.Text;
 using System.Threading.Tasks;
 using Windows.Devices.Gpio;
 
-namespace IoTApp
+namespace IoTApp.Sensors
 {
     public class PiController
     {
         public static GpioController GPIOController;
-        static GpioPin GPIOInputPin;
+        //static GpioPin GPIOInputPin;
         static GpioPin GPIOOutputPin;
-
+        public static GpioPinValue pinValue;
         const int INPUTPIN = 16;
-        const int OUTPUTPIN = 17;
+        const int OUTPUTPIN = 4;
 
         public static bool InitializeGPIO()
         {
@@ -28,11 +28,13 @@ namespace IoTApp
                     return false;
                 }
 
-                GPIOInputPin = GPIOController.OpenPin(INPUTPIN);
-                GPIOInputPin.SetDriveMode(GpioPinDriveMode.Input);
+                //GPIOInputPin = GPIOController.OpenPin(INPUTPIN);
+                //GPIOInputPin.SetDriveMode(GpioPinDriveMode.Input);
 
                 GPIOOutputPin = GPIOController.OpenPin(OUTPUTPIN);
                 GPIOOutputPin.SetDriveMode(GpioPinDriveMode.Output);
+                pinValue = GpioPinValue.High;
+                GPIOOutputPin.Write(pinValue);
 
                 return true;
             }
@@ -48,7 +50,8 @@ namespace IoTApp
         {
             try
             {
-                GPIOOutputPin.Write(GpioPinValue.Low);
+                pinValue = GpioPinValue.Low;
+                GPIOOutputPin.Write(pinValue);
             }
             catch (Exception)
             {
@@ -62,7 +65,8 @@ namespace IoTApp
         {
             try
             {
-                GPIOOutputPin.Write(GpioPinValue.High);
+                pinValue = GpioPinValue.High;
+                GPIOOutputPin.Write(pinValue);
             }
             catch (Exception)
             {
