@@ -28,7 +28,7 @@ namespace IoTApp
                 ReceiveCommandFromCloudAsync();
 
             }
-            catch (Exception e)
+            catch (Exception)
             {
                 throw;
             }

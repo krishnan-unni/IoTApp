@@ -13,8 +13,7 @@ namespace IoTApp
     public sealed partial class LEDSample : Page
     {
         DispatcherTimer ledTimer;
-        bool GPIOset = false;
-
+        
         public LEDSample()
         {
             this.InitializeComponent();
