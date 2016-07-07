@@ -5,12 +5,22 @@
     xmlns:local="using:IoTApp"
     xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
-    mc:Ignorable="d" Width="500" Height="500" Loaded="Page_Loaded">
+    mc:Ignorable="d" Width="1000" Height="1000" Loaded="Page_Loaded">
 
     <Grid Background="{ThemeResource ApplicationPageBackgroundThemeBrush}">
-        <StackPanel Orientation="Vertical">
-            <Image x:Name="cameraView" Height="450"></Image>
-            <Button x:Name="picCapture" Content="Capture" Click="picCapture_Click"/>
+        <StackPanel Height="500" Orientation="Vertical" Margin="0">
+            <Image x:Name="cameraView" Width="500" Height="200"/>
+            <CaptureElement x:Name="preview" Width="500" Height="200"/>
+            <StackPanel Orientation="Horizontal">
+                <Button x:Name="picCapture" Content="Capture" Click="picCapture_Click"/>
+                <Button x:Name="medCapture" Content="Capture Media" Click="medCapture_Click"/>
+                <Button x:Name="medPicCapture" Content="Capture Pic" Click="medPicCapture_Click"/>
+                <Button x:Name="copyPicCapture" Content="Copy Pic" Click="copyPicCapture_Click" />
+            </StackPanel>
+
+        </StackPanel>
+        <StackPanel>
+            <Image x:Name="copycameraView" Width="500" Height="200"/>
         </StackPanel>
     </Grid>
 </Page>
