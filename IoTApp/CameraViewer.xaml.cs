@@ -119,7 +119,6 @@ namespace IoTApp
                 await mediaCapture.StopPreviewAsync();
                 if (stream != null)
                 {
-                    var str = stream;
                     SoftwareBitmap bitmap = await GetBitmap(stream);
                     await SetBitMaptoImage(bitmap);
                     imgdata = ConvertToBytes(bitmap);
@@ -127,22 +126,9 @@ namespace IoTApp
             }
         }
 
-        /// <summary>
-        /// Using CaptureCameraUI to get pics
-        /// </summary>
-        /// <param name="sender"></param>
-        /// <param name="e"></param>
-        private async void picCapture_Click(object sender, RoutedEventArgs e)
+        private void copyPicCapture_Click(object sender, RoutedEventArgs e)
         {
-            StorageFile photo = await CameraUI.CaptureFileAsync(CameraCaptureUIMode.Photo);
-            if (photo == null)
-            {
-                return;
-            }
-            IRandomAccessStream photoStream = await photo.OpenAsync(FileAccessMode.Read);
-            SoftwareBitmap bitmap = await GetBitmap(photoStream);
-
-            await SetBitMaptoImage(bitmap);
+            copycameraView.Source = ConvertToSoftwareBitmap(imgdata);
         }
 
         /// <summary>
@@ -196,12 +182,6 @@ namespace IoTApp
                 
             }
             return bitmapNew;
-        }
-
-        private void copyPicCapture_Click(object sender, RoutedEventArgs e)
-        {
-
-            copycameraView.Source = ConvertToSoftwareBitmap(imgdata);
         }
     }
 }
