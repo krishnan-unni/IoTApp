@@ -21,6 +21,7 @@ using Windows.UI.Xaml.Input;
 using Windows.UI.Xaml.Media;
 using Windows.UI.Xaml.Media.Imaging;
 using Windows.UI.Xaml.Navigation;
+using Microsoft.Azure.Devices.Client;
 
 // The Blank Page item template is documented at http://go.microsoft.com/fwlink/?LinkId=234238
 
@@ -31,20 +32,29 @@ namespace IoTApp
     /// </summary>
     public sealed partial class CameraViewer : Page
     {
-        public CameraCaptureUI CameraUI;
+        static DeviceClient deviceClient = null;
+
         public MediaCapture mediaCapture;
         private MediaCaptureInitializationSettings settings;
         bool isInitialized = false;
 
         byte[] imgdata;
+
+        static string AzureHubHostName = "INet.azure-devices.net";
+        static string deviceKey = "X+K88nC/NzxKu4pfesVfc3DlOBclviGlck4G50wgxLU=";
+        static string deviceId = "TestIoTDevice";
+
         public CameraViewer()
         {
             this.InitializeComponent();
-            CameraUI = new CameraCaptureUI();
-            CameraUI.PhotoSettings.Format = CameraCaptureUIPhotoFormat.Jpeg;
-            CameraUI.PhotoSettings.CroppedSizeInPixels = new Size(400, 400);
+            try
+            {
+                deviceClient = DeviceClient.Create(AzureHubHostName, new DeviceAuthenticationWithRegistrySymmetricKey(deviceId, deviceKey));
 
-            InitializeMediaCapture();
+                InitializeMediaCapture();
+            }
+            catch (Exception e)
+            { }
         }
 
         private async void InitializeMediaCapture()
@@ -85,26 +95,6 @@ namespace IoTApp
         }
 
         /// <summary>
-        /// Using MediaCapture to get pics
-        /// </summary>
-        /// <param name="sender"></param>
-        /// <param name="e"></param>
-        private async void medCapture_Click(object sender, RoutedEventArgs e)
-        {
-            if (isInitialized)
-            {
-
-                await mediaCapture.StartPreviewAsync();
-                VideoFrame frame = await mediaCapture.GetPreviewFrameAsync();
-                //if (frame != null)
-                //{
-                //    await SetBitMaptoImage(frame.SoftwareBitmap);
-                //}
-                await mediaCapture.StopPreviewAsync();
-            }
-        }
-
-        /// <summary>
         /// 
         /// </summary>
         /// <param name="sender"></param>
@@ -115,7 +105,7 @@ namespace IoTApp
             {
                 InMemoryRandomAccessStream stream = new InMemoryRandomAccessStream();
                 await mediaCapture.StartPreviewAsync();
-                await mediaCapture.CapturePhotoToStreamAsync(Windows.Media.MediaProperties.ImageEncodingProperties.CreateJpeg(), stream);
+                await mediaCapture.CapturePhotoToStreamAsync(Windows.Media.MediaProperties.ImageEncodingProperties.CreateBmp(), stream);
                 await mediaCapture.StopPreviewAsync();
                 if (stream != null)
                 {
@@ -123,6 +113,7 @@ namespace IoTApp
                     await SetBitMaptoImage(bitmap);
                     imgdata = ConvertToBytes(bitmap);
                 }
+                MainPage.SendMessageToCloudAsync(imgdata);
             }
         }
 
@@ -151,7 +142,7 @@ namespace IoTApp
             await imageSource.SetBitmapAsync(bitmapBGR8);
 
             cameraView.Source = imageSource;
-            
+
         }
 
         public byte[] ConvertToBytes(SoftwareBitmap bitmap)
@@ -171,15 +162,11 @@ namespace IoTApp
 
         public WriteableBitmap ConvertToSoftwareBitmap(byte[] data)
         {
-            //SoftwareBitmap bitmap = SoftwareBitmap.CreateCopyFromBuffer()
-            //BitmapImage image = new BitmapImage();
             WriteableBitmap bitmapNew = new WriteableBitmap(640, 480);
-            //using (InMemoryRandomAccessStream newMem = new InMemoryRandomAccessStream())
             using (Stream stream = bitmapNew.PixelBuffer.AsStream())
             using (MemoryStream memStream = new MemoryStream(data))
             {
                 memStream.CopyTo(stream);
-                
             }
             return bitmapNew;
         }

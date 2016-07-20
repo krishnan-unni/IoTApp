@@ -18,15 +18,17 @@ namespace IoTApp
         static string deviceKey = "X+K88nC/NzxKu4pfesVfc3DlOBclviGlck4G50wgxLU=";
         static string deviceId = "TestIoTDevice";
 
+        static MainPage()
+        {
+            deviceClient = DeviceClient.Create(AzureHubHostName, new DeviceAuthenticationWithRegistrySymmetricKey(deviceId, deviceKey));
+        }
+
         public MainPage()
         {
             this.InitializeComponent();
             try
             {
-                deviceClient = DeviceClient.Create(AzureHubHostName, new DeviceAuthenticationWithRegistrySymmetricKey(deviceId, deviceKey));
-
                 ReceiveCommandFromCloudAsync();
-
             }
             catch (Exception)
             {
@@ -35,20 +37,21 @@ namespace IoTApp
 
         }
 
-        private static async void SendMessageToCloudAsync()
+        public static async void SendMessageToCloudAsync(byte[] data)
         {
-            Message messageCmd = new Message();
+            //Message message = new Message(Encoding.UTF8.GetBytes("This is just as message"));
+            //message.Properties["messageType"] = "string";
+            //await deviceClient.SendEventAsync(message);
+
+            Message messageCmd = new Message(data);
             messageCmd.MessageId = Guid.NewGuid().ToString();
-            messageCmd.Properties["messageType"] = "interactive";
-            messageCmd.Properties["Trigger"] = "ImageCapture";
-            messageCmd.Properties["Body"] = "Here is the picture of fridge";
-            messageCmd.Properties["Command"] = "GetImage";
+            messageCmd.Properties["messageType"] = "byte";
+            //messageCmd.Properties["Trigger"] = "ImageCapture";
+            //messageCmd.Properties["Body"] = "Here is the picture of fridge";
+            //messageCmd.Properties["Command"] = "GetImage";
 
             await deviceClient.SendEventAsync(messageCmd);
 
-            Message message = new Message(Encoding.UTF8.GetBytes("This is just as message"));
-
-            await deviceClient.SendEventAsync(message);
         }
 
         private static async void ReceiveCommandFromCloudAsync()
