@@ -42,22 +42,28 @@ namespace IoTApp
             //Message message = new Message(Encoding.UTF8.GetBytes("This is just as message"));
             //message.Properties["messageType"] = "string";
             //await deviceClient.SendEventAsync(message);
+            try
+            {
+                Message messageCmd = new Message(data);
+                messageCmd.MessageId = Guid.NewGuid().ToString();
+                messageCmd.Properties["messageType"] = "byte";
+                //messageCmd.Properties["Trigger"] = "ImageCapture";
+                //messageCmd.Properties["Body"] = "Here is the picture of fridge";
+                //messageCmd.Properties["Command"] = "GetImage";
 
-            Message messageCmd = new Message(data);
-            messageCmd.MessageId = Guid.NewGuid().ToString();
-            messageCmd.Properties["messageType"] = "byte";
-            //messageCmd.Properties["Trigger"] = "ImageCapture";
-            //messageCmd.Properties["Body"] = "Here is the picture of fridge";
-            //messageCmd.Properties["Command"] = "GetImage";
-
-            await deviceClient.SendEventAsync(messageCmd);
+                await deviceClient.SendEventAsync(messageCmd);
+            }
+            catch (Exception e)
+            {
+                
+            }
 
         }
 
         private static async void ReceiveCommandFromCloudAsync()
         {
             bool IsPiInitiated = false;
-            
+
             while (true)
             {
                 Message command = await deviceClient.ReceiveAsync();
