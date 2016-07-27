@@ -16,6 +16,8 @@ using Windows.UI.Xaml.Data;
 using Windows.UI.Xaml.Input;
 using Windows.UI.Xaml.Media;
 using Windows.UI.Xaml.Navigation;
+using Microsoft.IoT.Lightning.Providers;
+using Windows.Devices;
 
 // The Blank Page item template is documented at http://go.microsoft.com/fwlink/?LinkId=234238
 
@@ -58,22 +60,33 @@ namespace IoTApp
                     var gpio = GpioController.GetDefaultAsync();
                     if (gpio != null)
                     {
-                        //need to add pwm software to add pwm support
-                        PwmController pwmController = await PwmController.GetDefaultAsync();
-
-                        if (pwmController != null)
+                        if (LightningProvider.IsLightningEnabled)
                         {
-                            pwmController.SetDesiredFrequency(100);
-                            PwmPin Rpin = pwmController.OpenPin(R_PIN);
-                            PwmPin Gpin = pwmController.OpenPin(G_PIN);
-                            PwmPin Bpin = pwmController.OpenPin(B_PIN);
-                            led = new Sensors.RGBLedController(Rpin, Gpin, Bpin);
-                            led.On();
-                            led.Color = Colors.White;
+                            LowLevelDevicesController.DefaultProvider = LightningProvider.GetAggregateProvider();
                         }
-                        else
+                        //need to add pwm software to add pwm support
+                        var pwmControllers = await PwmController.GetControllersAsync(LightningPwmProvider.GetPwmProvider());
+
+                        PwmController pwmController;
+
+                        if (pwmControllers != null)
                         {
-                            System.Diagnostics.Debug.WriteLine("No pwm controller");
+                            pwmController = pwmControllers.FirstOrDefault();
+
+                            if (pwmController != null)
+                            {
+                                pwmController.SetDesiredFrequency(100);
+                                PwmPin Rpin = pwmController.OpenPin(R_PIN);
+                                PwmPin Gpin = pwmController.OpenPin(G_PIN);
+                                PwmPin Bpin = pwmController.OpenPin(B_PIN);
+                                led = new RGBLedController(Rpin, Gpin, Bpin);
+                                led.On();
+                                led.Color = Colors.Coral;
+                            }
+                            else
+                            {
+                                System.Diagnostics.Debug.WriteLine("No pwm controller");
+                            }
                         }
                     }
                     else
