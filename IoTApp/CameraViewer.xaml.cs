@@ -22,6 +22,7 @@ using Windows.UI.Xaml.Media;
 using Windows.UI.Xaml.Media.Imaging;
 using Windows.UI.Xaml.Navigation;
 using Microsoft.Azure.Devices.Client;
+using Microsoft.IoT.Lightning;
 
 // The Blank Page item template is documented at http://go.microsoft.com/fwlink/?LinkId=234238
 
@@ -76,6 +77,9 @@ namespace IoTApp
                     //initialize media capture object
                     await mediaCapture.InitializeAsync(settings);
                     isInitialized = true;
+
+                    var resolution = mediaCapture.VideoDeviceController.GetAvailableMediaStreamProperties(MediaStreamType.Photo);
+                    await mediaCapture.VideoDeviceController.SetMediaStreamPropertiesAsync(MediaStreamType.Photo, resolution.ToList()[1]);
                     preview.Source = mediaCapture;
                 }
                 catch (UnauthorizedAccessException)
