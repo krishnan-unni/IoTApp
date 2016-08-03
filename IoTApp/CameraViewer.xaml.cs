@@ -53,33 +53,33 @@ namespace IoTApp
             //find all cameras
             var cameras = await DeviceInformation.FindAllAsync(DeviceClass.VideoCapture);
 
-            if (cameras != null)
+            if (cameras == null) return;
+
+            //get first camera
+            DeviceInformation camera = cameras.FirstOrDefault();
+
+            //initiate settings
+            settings = new MediaCaptureInitializationSettings() { VideoDeviceId = camera.Id };
+            mediaCapture = new MediaCapture();
+            try
             {
-                //get first camera
-                DeviceInformation camera = cameras.FirstOrDefault();
+                //initialize media capture object
+                await mediaCapture.InitializeAsync(settings);
+                isInitialized = true;
 
-                //initiate settings
-                settings = new MediaCaptureInitializationSettings() { VideoDeviceId = camera.Id };
-                mediaCapture = new MediaCapture();
-                try
-                {
-                    //initialize media capture object
-                    await mediaCapture.InitializeAsync(settings);
-                    isInitialized = true;
-
-                    var resolution = mediaCapture.VideoDeviceController.GetAvailableMediaStreamProperties(MediaStreamType.Photo);
-                    await mediaCapture.VideoDeviceController.SetMediaStreamPropertiesAsync(MediaStreamType.Photo, resolution.ToList()[1]);
-                    preview.Source = mediaCapture;
-                }
-                catch (UnauthorizedAccessException)
-                {
-                    Debug.WriteLine("The app was denied access to the camera");
-                }
-                catch (Exception ex)
-                {
-                    Debug.WriteLine("Exception when initializing MediaCapture with {0}: {1}", camera.Id, ex.ToString());
-                }
+                var resolution = mediaCapture.VideoDeviceController.GetAvailableMediaStreamProperties(MediaStreamType.Photo);
+                await mediaCapture.VideoDeviceController.SetMediaStreamPropertiesAsync(MediaStreamType.Photo, resolution.ToList()[1]);
+                preview.Source = mediaCapture;
             }
+            catch (UnauthorizedAccessException)
+            {
+                Debug.WriteLine("The app was denied access to the camera");
+            }
+            catch (Exception ex)
+            {
+                Debug.WriteLine($"Exception when initializing MediaCapture with {camera.Id}: {ex.Message}");
+            }
+
         }
 
         private void Page_Loaded(object sender, RoutedEventArgs e)
@@ -94,20 +94,20 @@ namespace IoTApp
         /// <param name="e"></param>
         private async void medPicCapture_Click(object sender, RoutedEventArgs e)
         {
-            if (isInitialized)
+            if (!isInitialized) return;
+
+            InMemoryRandomAccessStream stream = new InMemoryRandomAccessStream();
+            await mediaCapture.StartPreviewAsync();
+            await mediaCapture.CapturePhotoToStreamAsync(Windows.Media.MediaProperties.ImageEncodingProperties.CreateBmp(), stream);
+            await mediaCapture.StopPreviewAsync();
+            if (stream != null)
             {
-                InMemoryRandomAccessStream stream = new InMemoryRandomAccessStream();
-                await mediaCapture.StartPreviewAsync();
-                await mediaCapture.CapturePhotoToStreamAsync(Windows.Media.MediaProperties.ImageEncodingProperties.CreateBmp(), stream);
-                await mediaCapture.StopPreviewAsync();
-                if (stream != null)
-                {
-                    SoftwareBitmap bitmap = await GetBitmap(stream);
-                    await SetBitMaptoImage(bitmap);
-                    imgdata = ConvertToBytes(bitmap);
-                }
-                MainPage.SendMessageToCloudAsync(imgdata);
+                SoftwareBitmap bitmap = await GetBitmap(stream);
+                await SetBitMaptoImage(bitmap);
+                imgdata = ConvertToBytes(bitmap);
             }
+            MainPage.SendMessageToCloudAsync(imgdata);
+
         }
 
         private void copyPicCapture_Click(object sender, RoutedEventArgs e)
@@ -129,10 +129,10 @@ namespace IoTApp
 
         private async Task SetBitMaptoImage(SoftwareBitmap bitmap)
         {
-            SoftwareBitmap bitmapBGR8 = SoftwareBitmap.Convert(bitmap, BitmapPixelFormat.Bgra8, BitmapAlphaMode.Premultiplied);
+            SoftwareBitmap bitmapBgr8 = SoftwareBitmap.Convert(bitmap, BitmapPixelFormat.Bgra8, BitmapAlphaMode.Premultiplied);
 
             SoftwareBitmapSource imageSource = new SoftwareBitmapSource();
-            await imageSource.SetBitmapAsync(bitmapBGR8);
+            await imageSource.SetBitmapAsync(bitmapBgr8);
 
             cameraView.Source = imageSource;
 
